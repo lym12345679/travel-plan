@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, renderList } from 'vue'
 import FoldingButton from '@/components/FoldingButton.vue'
 import IconHotel from '@/components/icons/IconHotel.vue'
 import IconSpot from '@/components/icons/IconSpot.vue'
 import IconTransportation from '@/components/icons/IconTransportation.vue'
+import TravelList from '@/components/TravelList.vue'
+import * as events from 'node:events'
 
 // 控制内容的显示状态
 const showHotels = ref(true)
@@ -17,6 +19,7 @@ const isPlanExpanded = ref(true)
 const togglePlan = () => {
   isPlanExpanded.value = !isPlanExpanded.value
 }
+
 
 // 定义类型
 interface Position {
@@ -48,21 +51,22 @@ interface Transportation {
   position: Position
 }
 
+
 // 模拟数据
 const hotels: Hotel[] = [
-  { id: 1, name: '海景酒店', location: '市中心', price: '¥680/晚', position: { x: 25, y: 35 } },
-  { id: 2, name: '山顶度假村', location: '山区', price: '¥520/晚', position: { x: 75, y: 20 } },
+  { id: 10001, name: '海景酒店', location: '市中心', price: '¥680/晚', position: { x: 25, y: 35 } },
+  { id: 10002, name: '山顶度假村', location: '山区', price: '¥520/晚', position: { x: 75, y: 20 } },
 ]
 
 const spots: Spot[] = [
-  { id: 1, name: '历史博物馆', location: '东部', rating: 4.5, position: { x: 65, y: 40 } },
-  { id: 2, name: '海滩公园', location: '南部', rating: 4.7, position: { x: 30, y: 70 } },
-  { id: 3, name: '古城墙', location: '西部', rating: 4.3, position: { x: 15, y: 55 } },
+  { id: 20001, name: '历史博物馆', location: '东部', rating: 4.5, position: { x: 65, y: 40 } },
+  { id: 20002, name: '海滩公园', location: '南部', rating: 4.7, position: { x: 30, y: 70 } },
+  { id: 20003, name: '古城墙', location: '西部', rating: 4.3, position: { x: 15, y: 55 } },
 ]
 
 const transportations: Transportation[] = [
-  { id: 1, type: '公交', route: '1路', frequency: '每15分钟一班', position: { x: 40, y: 45 } },
-  { id: 2, type: '地铁', route: 'A线', frequency: '每10分钟一班', position: { x: 55, y: 65 } },
+  { id: 30001, type: '公交', route: '1路', frequency: '每15分钟一班', position: { x: 40, y: 45 } },
+  { id: 30002, type: '地铁', route: 'A线', frequency: '每10分钟一班', position: { x: 55, y: 65 } },
 ]
 
 // 选中的项目（旅游清单）
@@ -181,6 +185,122 @@ const clearSelection = () => {
   selectedPlan.value.spots = []
   selectedPlan.value.transportations = []
 }
+const currentUid = ref(0)
+//右侧清单处理
+interface listInfo {
+  uid:number
+  name: string
+  type: string
+  id: number
+  location: string
+}
+
+const selectedInfo = ref({
+  listInfo: {
+    uid:0,
+    name:'',
+    type: '',
+    id: 0,
+    location: '',
+  },
+})
+
+const travelInfoList = ref<listInfo[]>([])
+const startDraggingSpotIcon = (spot:Spot,ev:events.Event) => {
+  selectedInfo.value.listInfo = {
+    uid:++currentUid.value,
+    name: spot.name,
+    type: 'spot',
+    id: spot.id,
+    location: spot.location,
+  }
+  drag(ev,selectedInfo.value.listInfo)
+  //console.log('startDragging')
+}
+
+const startDraggingHotelIcon = (hotel:Hotel,ev:events.Event) => {
+  selectedInfo.value.listInfo = {
+    uid:++currentUid.value,
+    name: hotel.name,
+    type: 'hotel',
+    id: hotel.id,
+    location: hotel.location,
+  }
+  drag(ev,selectedInfo.value.listInfo)
+  //console.log('startDragging')
+}
+
+const startDraggingTransportationIcon = (transportation:Transportation,ev:events.Event) => {
+  selectedInfo.value.listInfo = {
+    uid:++currentUid.value,
+    name: transportation.type,
+    type: 'transportation',
+    id: transportation.id,
+    location: transportation.route,
+  }
+  drag(ev,selectedInfo.value.listInfo)
+  //console.log('startDragging')
+}
+const drag=(ev:events.Event,selectedInfo:listInfo)=> {
+  //console.log('dragging:'+selectedInfo.name+' '+selectedInfo.type+' '+selectedInfo.id+' '+selectedInfo.location);
+}
+const startDraggingListInfo= (item:listInfo,ev:events.Event) => {
+  selectedInfo.value.listInfo = {
+    uid:item.uid,
+    name: item.name,
+    type: item.type,
+    id: item.id,
+    location: item.location,
+  }
+  drag(ev,selectedInfo.value.listInfo)
+  //console.log('startDragging')
+}
+
+const clearInfo = () => {
+  selectedInfo.value.listInfo = {
+    uid:0,
+    name:'',
+    type: '',
+    id: 0,
+    location: '',
+  }
+}
+function onDrop(ev:events.Event ) {
+  ev.preventDefault();
+  var data=selectedInfo.value.listInfo;
+  //console.log('getData:'+data);
+  travelInfoList.value.push(data);
+  /*travelInfoList.value.forEach((item => {
+    console.log('item:', item);
+  }))*/
+  selectedInfo.value.listInfo = {
+    uid:0,
+    name:'',
+    type: '',
+    id: 0,
+    location: '',
+  }
+  //ev.target.appendChild(document.getElementById(data));
+}
+const onListDrop=(item:listInfo,ev:events.Event) => {
+  ev.preventDefault();
+  ev.stopPropagation();
+  //console.log('onListDrop');
+  let index=travelInfoList.value.indexOf(item)
+  travelInfoList.value.splice(index, 0, selectedInfo.value.listInfo);
+
+  //console.log('onListDrop');
+}
+function onDragLeave(ev:events.Event) {
+  ev.preventDefault();
+  //console.log(selectedInfo.value.listInfo);
+  travelInfoList.value = travelInfoList.value.filter(x => x.uid !== selectedInfo.value.listInfo.uid);
+  //console.log('onDragLeave');
+}
+function allowDrop(ev:events.Event)
+{
+  ev.preventDefault();
+}
 </script>
 
 <template>
@@ -206,6 +326,8 @@ const clearSelection = () => {
           :style="{ left: hotel.position.x + '%', top: hotel.position.y + '%' }"
           :class="{ 'marker-selected': isItemSelected('hotel', hotel.id) }"
           @click.stop="toggleSelectItem('hotel', hotel, $event)"
+          draggable="true"
+          @dragstart ="startDraggingHotelIcon(hotel,$event)"
         >
           <div class="marker-icon hotel-icon">
             <IconHotel />
@@ -225,10 +347,12 @@ const clearSelection = () => {
           class="map-marker spot-marker"
           :style="{ left: spot.position.x + '%', top: spot.position.y + '%' }"
           :class="{ 'marker-selected': isItemSelected('spot', spot.id) }"
+          draggable="true"
           @click.stop="toggleSelectItem('spot', spot, $event)"
+          @dragstart ="startDraggingSpotIcon(spot,$event)"
         >
           <div class="marker-icon spot-icon">
-            <IconSpot />
+            <IconSpot/>
           </div>
           <div
             class="marker-tooltip"
@@ -249,6 +373,8 @@ const clearSelection = () => {
           :style="{ left: transport.position.x + '%', top: transport.position.y + '%' }"
           :class="{ 'marker-selected': isItemSelected('transportation', transport.id) }"
           @click.stop="toggleSelectItem('transportation', transport, $event)"
+          draggable="true"
+          @dragstart ="startDraggingTransportationIcon(transport,$event)"
         >
           <div class="marker-icon transportation-icon">
             <IconTransportation />
@@ -268,12 +394,19 @@ const clearSelection = () => {
     </div>
 
     <!-- 右栏：旅游规划清单（暂时不实现具体功能） -->
-    <div class="right-panel">
+    <div class="right-panel" @drop="onDrop" @dragover="allowDrop" @dragleave="onDragLeave">
       <div class="plan-header">
         <h2>旅游清单</h2>
       </div>
-      <div class="plan-content">
-        <div class="empty-plan-message">行程规划清单功能开发中...</div>
+      <div class="plan-content" >
+        <div v-for="item in travelInfoList">
+          <TravelList
+            :name="item.name" :type="item.type" :location="item.type" :id="item.id"
+            draggable="true"
+            @dragstart="startDraggingListInfo(item, $event)"
+            @drop="onListDrop(item,$event)"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -298,8 +431,8 @@ const clearSelection = () => {
 
 .control-panel {
   position: absolute;
-  top: 15px;
-  left: 15px;
+  top: 16px;
+  left: 16px;
   z-index: 100;
 }
 
@@ -435,6 +568,23 @@ const clearSelection = () => {
   color: #555;
 }
 
+
+
+/* 适配不同屏幕尺寸 */
+@media (max-width: 768px) {
+  .home {
+    flex-direction: column;
+  }
+}
+
+.draggable {
+  position: absolute;
+  cursor: move;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f0f0f0;
+}
+
 /* 右侧面板样式 */
 .right-panel {
   flex: 1;
@@ -458,11 +608,38 @@ const clearSelection = () => {
 }
 
 .plan-content {
-  padding: 20px;
-  display: flex;
+  flex-direction: column; /* Stack items vertically */
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  min-height: 80%;
+}
+
+.empty-plan-message {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+/* 右侧面板样式 */
+.right-panel {
+  flex: 1;
+  background-color: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #4caf50;
+  color: white;
+}
+
+.plan-header h2 {
+  margin: 0;
+  font-size: 1.3em;
 }
 
 .empty-plan-message {
@@ -472,10 +649,4 @@ const clearSelection = () => {
   padding: 20px;
 }
 
-/* 适配不同屏幕尺寸 */
-@media (max-width: 768px) {
-  .home {
-    flex-direction: column;
-  }
-}
 </style>

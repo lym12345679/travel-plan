@@ -2,8 +2,7 @@
   <div class="folding-button-container">
     <!-- 圆形折叠按钮 -->
     <button class="folding-button" @click="toggleIcons">
-      <span v-if="isExpanded" class="icon-close">×</span>
-      <span v-else class="icon-expand">+</span>
+      <span :class="isExpanded ? 'icon-close' : 'icon-expand'">×</span>
     </button>
 
     <!-- 图标容器 -->
@@ -90,7 +89,8 @@ const emit = defineEmits<{
 .folding-button-container {
   position: relative;
   display: flex;
-  align-items: center;
+  justify-content: start;
+  align-items: start;
 }
 
 .folding-button {
@@ -116,14 +116,19 @@ const emit = defineEmits<{
 
 .icon-expand,
 .icon-close {
-  line-height: 1;
+  line-height: 1px;
   position: relative;
   top: -1px;
+  transition: transform 0.3s;
+}
+
+.icon-expand {
+  transform: rotate(-45deg);
 }
 
 .icons-container {
   display: flex;
-  margin-left: 15px;
+  margin-left: 16px;
 }
 
 .icon-item {
