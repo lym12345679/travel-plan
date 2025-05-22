@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, renderList } from 'vue'
+import { ref, watch, nextTick, onMounted, renderList } from 'vue'
 import FoldingButton from '@/components/FoldingButton.vue'
 import IconHotel from '@/components/icons/IconHotel.vue'
 import IconSpot from '@/components/icons/IconSpot.vue'
@@ -19,7 +19,6 @@ const isPlanExpanded = ref(true)
 const togglePlan = () => {
   isPlanExpanded.value = !isPlanExpanded.value
 }
-
 
 // 定义类型
 interface Position {
@@ -54,80 +53,276 @@ interface Transportation {
   imageUrl: string // 新增图片链接字段
 }
 
-
 // 模拟数据
 const hotels: Hotel[] = [
-  { id: 10001, name: '速8酒店(上海松江新城嘉和广场店)', location: '上海市松江区文诚路338弄D区1号楼4层', price: '¥680/晚', position: { x: 25, y: 35 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/21216203233ff277087519bbf77cdc59?type=pic'},
-  { id: 10002, name: '速8酒店(上海浦东机场晨阳路店)', location: '上海市浦东新区川南奉公路1312号', price: '¥520/晚', position: { x: 74, y: 26 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/a7e0bf71b9845b0713240320df64149b?type=pic'},
-  { id: 10003, name: '速8酒店(上海金山城市沙滩店)', location: '上海市金山区金山卫镇学府路551号', price: '¥520/晚', position: { x: 30, y: 60 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/b3295ca75973cc7a603eb9037c93de18?type=pic'},
-  { id: 10004, name: '99优选酒店(上海北外滩延吉中路地铁站店)', location: '上海市杨浦区延吉中路95号248幢', price: '¥520/晚', position: { x: 65, y: 33 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/0676ebd7c6009b5ed906a00da77a8401?type=pic'},
-  { id: 10005, name: '上海君然酒店(秀沿路地铁站店)', location: '上海市浦东新区康桥镇川周公路3251弄9号', price: '¥520/晚', position: { x: 80, y: 70 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/9e015361b5f79b75abf763cdae9345cb?type=pic'},
-  { id: 10006, name: '如家华驿酒店(上海金山城市沙滩店)', location: '上海市金山区象州路128号(停车场内)', price: '¥520/晚', position: { x: 75, y: 68 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/5554f9b939e2369f188c6dfa99cef5b1?type=pic'},
-  { id: 10007, name: '柏友青年酒店', location: '上海市闵行区吴中路1099号2号楼4-5层', price: '¥520/晚', position: { x: 55, y: 17 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/ec1b61b5827dea874a00961b95bcad87?type=pic'},
-  { id: 10008, name: '如家酒店·neo(上海闵行开发区北桥地铁站店)', location: '上海市闵行区沪闵路2660号(北桥地铁站2号口步行270米)', price: '¥520/晚', position: { x: 15, y: 20 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/1f8a4cf99808badd219c1fbb8e781e6b?type=pic'},
-  { id: 10009, name: '99优选酒店(上海虹桥机场沪青平公路店)', location: '上海市闵行区沪青平公路航东路788弄9号', price: '¥520/晚', position: { x: 50, y: 50 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/7a12e7d9b7ecf461c2149167ba89e2e4?type=pic'},
-  { id: 10010, name: '布丁酒店(上海浦东机场店)', location: '上海市浦东新区江镇水闸南路10号', price: '¥520/晚', position: { x: 50, y: 78 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/e243d19a70ff2da9a2fb5a70e52dc955?type=pic'},
-  { id: 10011, name: '格林豪泰智选酒店(上海罗泾店)', location: '上海市宝山区罗泾镇新川沙路518号', price: '¥520/晚', position: { x: 23, y: 82 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/75cc0546306e9f325b61274ab7df14d7?type=pic'},
+  {
+    id: 10001,
+    name: '速8酒店(上海松江新城嘉和广场店)',
+    location: '上海市松江区文诚路338弄D区1号楼4层',
+    price: '¥680/晚',
+    position: { x: 25, y: 35 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/21216203233ff277087519bbf77cdc59?type=pic',
+  },
+  {
+    id: 10002,
+    name: '速8酒店(上海浦东机场晨阳路店)',
+    location: '上海市浦东新区川南奉公路1312号',
+    price: '¥520/晚',
+    position: { x: 74, y: 26 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/a7e0bf71b9845b0713240320df64149b?type=pic',
+  },
+  {
+    id: 10003,
+    name: '速8酒店(上海金山城市沙滩店)',
+    location: '上海市金山区金山卫镇学府路551号',
+    price: '¥520/晚',
+    position: { x: 30, y: 60 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/b3295ca75973cc7a603eb9037c93de18?type=pic',
+  },
+  {
+    id: 10004,
+    name: '99优选酒店(上海北外滩延吉中路地铁站店)',
+    location: '上海市杨浦区延吉中路95号248幢',
+    price: '¥520/晚',
+    position: { x: 65, y: 33 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/0676ebd7c6009b5ed906a00da77a8401?type=pic',
+  },
+  {
+    id: 10005,
+    name: '上海君然酒店(秀沿路地铁站店)',
+    location: '上海市浦东新区康桥镇川周公路3251弄9号',
+    price: '¥520/晚',
+    position: { x: 80, y: 70 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/9e015361b5f79b75abf763cdae9345cb?type=pic',
+  },
+  {
+    id: 10006,
+    name: '如家华驿酒店(上海金山城市沙滩店)',
+    location: '上海市金山区象州路128号(停车场内)',
+    price: '¥520/晚',
+    position: { x: 75, y: 68 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/5554f9b939e2369f188c6dfa99cef5b1?type=pic',
+  },
+  {
+    id: 10007,
+    name: '柏友青年酒店',
+    location: '上海市闵行区吴中路1099号2号楼4-5层',
+    price: '¥520/晚',
+    position: { x: 55, y: 17 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/ec1b61b5827dea874a00961b95bcad87?type=pic',
+  },
+  {
+    id: 10008,
+    name: '如家酒店·neo(上海闵行开发区北桥地铁站店)',
+    location: '上海市闵行区沪闵路2660号(北桥地铁站2号口步行270米)',
+    price: '¥520/晚',
+    position: { x: 15, y: 20 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/1f8a4cf99808badd219c1fbb8e781e6b?type=pic',
+  },
+  {
+    id: 10009,
+    name: '99优选酒店(上海虹桥机场沪青平公路店)',
+    location: '上海市闵行区沪青平公路航东路788弄9号',
+    price: '¥520/晚',
+    position: { x: 50, y: 50 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/7a12e7d9b7ecf461c2149167ba89e2e4?type=pic',
+  },
+  {
+    id: 10010,
+    name: '布丁酒店(上海浦东机场店)',
+    location: '上海市浦东新区江镇水闸南路10号',
+    price: '¥520/晚',
+    position: { x: 50, y: 78 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/e243d19a70ff2da9a2fb5a70e52dc955?type=pic',
+  },
+  {
+    id: 10011,
+    name: '格林豪泰智选酒店(上海罗泾店)',
+    location: '上海市宝山区罗泾镇新川沙路518号',
+    price: '¥520/晚',
+    position: { x: 23, y: 82 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/75cc0546306e9f325b61274ab7df14d7?type=pic',
+  },
 ]
 
 const spots: Spot[] = [
-  { id: 20001, name: '上海迪士尼度假区', location: '上海市浦东新区川沙新镇黄赵路310号(迪士尼地铁站1号口步行360米)', rating: 4.7, position: { x: 70, y: 60 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/0ed6a4415156ded208b6b8830970191d'},
-  { id: 20002, name: '外滩', location: '上海市黄浦区中山东一路49号', rating: 4.7, position: { x: 40, y: 60 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/b9c402b7d34ea98654cc915e567761dd'},
-  { id: 20003, name: '东方明珠广播电视塔', location: '上海市浦东新区世纪大道1号', rating: 4.7, position: { x: 43, y: 27 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/73078b8c6c35ed97cf0c11c0cb65b32f'},
-  { id: 20004, name: '川沙古镇', location: '上海市浦东新区东城壕路8弄1号', rating: 4.5, position: { x: 80, y: 50 } ,
-    imageUrl: 'https://aos-comment.amap.com/B0FFKPFGVE/comment/4b01252a7c24468d74a8a9f2b6ccba1d_2048_2048_80.jpg'},
-  { id: 20005, name: '上海世纪公园', location: '上海市浦东新区锦绣路1001号', rating: 4.5, position: { x: 50, y: 38 } ,
-    imageUrl: 'http://aos-cdn-image.amap.com/sns/ugccomment/cf673112-ca06-4486-8c2d-7939c26b417e.jpg'},
-  { id: 20006, name: '武康路历史文化名街', location: '上海市徐汇区上海市湖南路街道武康路与湖南路交叉口', rating: 4.3, position: { x: 30, y: 40 } ,
-    imageUrl: 'https://aos-comment.amap.com/B0FFIK0Z21/comment/0137AF31_FBC8_4319_AD94_B8C7EFE9FEA7_L0_001_1512_2016_1738127719706_97726227.jpg'},
-  { id: 20007, name: '上海豫园', location: '上海市黄浦区福佑路168号', rating: 4.0, position: { x: 20, y: 80 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/faeb0264854cd82fbb315cb2ccacea0f'},
-  { id: 20008, name: '上海滨江森林公园', location: '上海市浦东新区高桥镇凌桥高沙滩3号', rating: 4.4, position: { x: 77, y: 23 } ,
-    imageUrl: 'https://aos-comment.amap.com/B00155FHMD/comment/content_media_external_images_media_1000032730_ss__1733575930263_86880803.jpg'},
-  { id: 20009, name: '1933老场坊', location: '上海市虹口区沙泾路10号', rating: 4.5, position: { x: 15, y: 25 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/6a976ce1765588fe56d1bbc21c1fa0e2'},
-  { id: 20010, name: '浦东金海湿地公园', location: '上海市浦东新区曹路镇民唐路198号', rating: 4.2, position: { x: 50, y: 78 } ,
-    imageUrl: 'https://aos-comment.amap.com/B00156ECD1/comment/content_media_external_images_media_80219_ss__1741407710503_34240895.jpg'},
-  { id: 20011, name: '上海世博园', location: '上海市浦东新区上海市上钢新村街道上南路与博成路交叉口东南约60米', rating: 4.5, position: { x: 85, y: 55 } ,
-    imageUrl: 'https://aos-comment.amap.com/B0FFJGWFDS/comment/041f14a66173d4484e90a08c5b0834a3_2048_2048_80.jpg'},
+  {
+    id: 20001,
+    name: '上海迪士尼度假区',
+    location: '上海市浦东新区川沙新镇黄赵路310号(迪士尼地铁站1号口步行360米)',
+    rating: 4.7,
+    position: { x: 70, y: 60 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/0ed6a4415156ded208b6b8830970191d',
+  },
+  {
+    id: 20002,
+    name: '外滩',
+    location: '上海市黄浦区中山东一路49号',
+    rating: 4.7,
+    position: { x: 40, y: 60 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/b9c402b7d34ea98654cc915e567761dd',
+  },
+  {
+    id: 20003,
+    name: '东方明珠广播电视塔',
+    location: '上海市浦东新区世纪大道1号',
+    rating: 4.7,
+    position: { x: 43, y: 27 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/73078b8c6c35ed97cf0c11c0cb65b32f',
+  },
+  {
+    id: 20004,
+    name: '川沙古镇',
+    location: '上海市浦东新区东城壕路8弄1号',
+    rating: 4.5,
+    position: { x: 80, y: 50 },
+    imageUrl:
+      'https://aos-comment.amap.com/B0FFKPFGVE/comment/4b01252a7c24468d74a8a9f2b6ccba1d_2048_2048_80.jpg',
+  },
+  {
+    id: 20005,
+    name: '上海世纪公园',
+    location: '上海市浦东新区锦绣路1001号',
+    rating: 4.5,
+    position: { x: 50, y: 38 },
+    imageUrl:
+      'http://aos-cdn-image.amap.com/sns/ugccomment/cf673112-ca06-4486-8c2d-7939c26b417e.jpg',
+  },
+  {
+    id: 20006,
+    name: '武康路历史文化名街',
+    location: '上海市徐汇区上海市湖南路街道武康路与湖南路交叉口',
+    rating: 4.3,
+    position: { x: 30, y: 40 },
+    imageUrl:
+      'https://aos-comment.amap.com/B0FFIK0Z21/comment/0137AF31_FBC8_4319_AD94_B8C7EFE9FEA7_L0_001_1512_2016_1738127719706_97726227.jpg',
+  },
+  {
+    id: 20007,
+    name: '上海豫园',
+    location: '上海市黄浦区福佑路168号',
+    rating: 4.0,
+    position: { x: 20, y: 80 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/faeb0264854cd82fbb315cb2ccacea0f',
+  },
+  {
+    id: 20008,
+    name: '上海滨江森林公园',
+    location: '上海市浦东新区高桥镇凌桥高沙滩3号',
+    rating: 4.4,
+    position: { x: 77, y: 23 },
+    imageUrl:
+      'https://aos-comment.amap.com/B00155FHMD/comment/content_media_external_images_media_1000032730_ss__1733575930263_86880803.jpg',
+  },
+  {
+    id: 20009,
+    name: '1933老场坊',
+    location: '上海市虹口区沙泾路10号',
+    rating: 4.5,
+    position: { x: 15, y: 25 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/6a976ce1765588fe56d1bbc21c1fa0e2',
+  },
+  {
+    id: 20010,
+    name: '浦东金海湿地公园',
+    location: '上海市浦东新区曹路镇民唐路198号',
+    rating: 4.2,
+    position: { x: 50, y: 78 },
+    imageUrl:
+      'https://aos-comment.amap.com/B00156ECD1/comment/content_media_external_images_media_80219_ss__1741407710503_34240895.jpg',
+  },
+  {
+    id: 20011,
+    name: '上海世博园',
+    location: '上海市浦东新区上海市上钢新村街道上南路与博成路交叉口东南约60米',
+    rating: 4.5,
+    position: { x: 85, y: 55 },
+    imageUrl:
+      'https://aos-comment.amap.com/B0FFJGWFDS/comment/041f14a66173d4484e90a08c5b0834a3_2048_2048_80.jpg',
+  },
 ]
 
 const transportations: Transportation[] = [
-  { id: 30001, type: '源深体育中心(地铁站)', route: '上海市浦东新区6号线', frequency: '每15分钟一班', position: { x: 40, y: 45 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10039836/comment/B552D39A_282A_4CDA_A955_F18BE084734F_L0_001_1502_2000_1747215646792_76943368.jpg'},
-  { id: 30002, type: '杨高中路(地铁站)', route: '上海市浦东新区18号线;9号线', frequency: '每10分钟一班', position: { x: 55, y: 65 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10039884/comment/a7aee2f8284698465406e5645d05799d_2048_2048_80.jpg'},
-  { id: 30003, type: '民生路(地铁站)', route: '上海市浦东新区18号线;6号线', frequency: '每20分钟一班', position: { x: 20, y: 22 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10039837/comment/content_media_external_images_media_1000072461_ss__1745998885755_88881053.jpg'},
-  { id: 30004, type: '北洋泾路(地铁站)', route: '上海市浦东新区6号线', frequency: '每15分钟一班', position: { x: 17, y: 65 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10039838/comment/42bceb36317794e8a015d3359f29a5f1_2048_2048_80.jpg'},
-  { id: 30005, type: '芳甸路(地铁站)', route: '上海市浦东新区9号线', frequency: '每10分钟一班', position: { x: 70, y: 24 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10960994/comment/%5B2024-12-26-06-35-46%5DECD359D3-334D-4362-A486-9B85F7A4DA2_1735166154097_65508737.jpg'},
-  { id: 30006, type: '向城路(地铁站)', route: '上海市浦东新区4号线', frequency: '每8分钟一班', position: { x: 77, y: 53 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/e2b05e45b1f398c6ed616b7231f66716'},
-  { id: 30007, type: '张杨路桃林路(公交站)', route: '上海市浦东新区339路;736路;783路;790路;791路;961路;961路(区间);浦东106路', frequency: '每20分钟一班', position: { x: 38, y: 82 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10025028/headerImg/053b6b288568206460ee5698dfbf9f3b_2048_2048_80.jpg'},
-  { id: 30008, type: '民生路灵山路(公交站)', route: '上海市浦东新区1024路;130路;181路;609路;638路;794路;公利1号线', frequency: '每15分钟一班', position: { x: 33, y: 32 } ,
-    imageUrl: 'https://aos-comment.amap.com/BV10024819/comment/874a08eb68122cdca7aa95baf9303589_2048_2048_80.jpg'},
-  { id: 30009, type: '平江路枫林路(公交站)', route: '上海市徐汇区957路', frequency: '每23分钟一班', position: { x: 68, y: 40 } ,
-    imageUrl: 'http://store.is.autonavi.com/showpic/b19c51a90db1c3b02b4387f802f0c1e7'},
+  {
+    id: 30001,
+    type: '源深体育中心(地铁站)',
+    route: '上海市浦东新区6号线',
+    frequency: '每15分钟一班',
+    position: { x: 40, y: 45 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10039836/comment/B552D39A_282A_4CDA_A955_F18BE084734F_L0_001_1502_2000_1747215646792_76943368.jpg',
+  },
+  {
+    id: 30002,
+    type: '杨高中路(地铁站)',
+    route: '上海市浦东新区18号线;9号线',
+    frequency: '每10分钟一班',
+    position: { x: 55, y: 65 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10039884/comment/a7aee2f8284698465406e5645d05799d_2048_2048_80.jpg',
+  },
+  {
+    id: 30003,
+    type: '民生路(地铁站)',
+    route: '上海市浦东新区18号线;6号线',
+    frequency: '每20分钟一班',
+    position: { x: 20, y: 22 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10039837/comment/content_media_external_images_media_1000072461_ss__1745998885755_88881053.jpg',
+  },
+  {
+    id: 30004,
+    type: '北洋泾路(地铁站)',
+    route: '上海市浦东新区6号线',
+    frequency: '每15分钟一班',
+    position: { x: 17, y: 65 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10039838/comment/42bceb36317794e8a015d3359f29a5f1_2048_2048_80.jpg',
+  },
+  {
+    id: 30005,
+    type: '芳甸路(地铁站)',
+    route: '上海市浦东新区9号线',
+    frequency: '每10分钟一班',
+    position: { x: 70, y: 24 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10960994/comment/%5B2024-12-26-06-35-46%5DECD359D3-334D-4362-A486-9B85F7A4DA2_1735166154097_65508737.jpg',
+  },
+  {
+    id: 30006,
+    type: '向城路(地铁站)',
+    route: '上海市浦东新区4号线',
+    frequency: '每8分钟一班',
+    position: { x: 77, y: 53 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/e2b05e45b1f398c6ed616b7231f66716',
+  },
+  {
+    id: 30007,
+    type: '张杨路桃林路(公交站)',
+    route: '上海市浦东新区339路;736路;783路;790路;791路;961路;961路(区间);浦东106路',
+    frequency: '每20分钟一班',
+    position: { x: 38, y: 82 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10025028/headerImg/053b6b288568206460ee5698dfbf9f3b_2048_2048_80.jpg',
+  },
+  {
+    id: 30008,
+    type: '民生路灵山路(公交站)',
+    route: '上海市浦东新区1024路;130路;181路;609路;638路;794路;公利1号线',
+    frequency: '每15分钟一班',
+    position: { x: 33, y: 32 },
+    imageUrl:
+      'https://aos-comment.amap.com/BV10024819/comment/874a08eb68122cdca7aa95baf9303589_2048_2048_80.jpg',
+  },
+  {
+    id: 30009,
+    type: '平江路枫林路(公交站)',
+    route: '上海市徐汇区957路',
+    frequency: '每23分钟一班',
+    position: { x: 68, y: 40 },
+    imageUrl: 'http://store.is.autonavi.com/showpic/b19c51a90db1c3b02b4387f802f0c1e7',
+  },
 ]
-
-
 
 // 选中的项目（旅游清单）
 const selectedPlan = ref<{
@@ -248,21 +443,23 @@ const clearSelection = () => {
 const currentUid = ref(0)
 //右侧清单处理
 interface listInfo {
-  uid:number
+  uid: number
   name: string
   type: string
   id: number
   location: string
+  position: Position
   imgUrl: string
 }
 
 const selectedInfo = ref({
   listInfo: {
-    uid:0,
-    name:'',
+    uid: 0,
+    name: '',
     type: '',
     id: 0,
     location: '',
+    position: { x: 0, y: 0 },
     imgUrl: '',
   },
 })
@@ -270,118 +467,186 @@ const selectedInfo = ref({
 const travelInfoList = ref<listInfo[]>([])
 
 //拖拽功能
-const startDraggingSpotIcon = (spot:Spot,ev:events.Event) => {
+//拖拽景点图标时触发
+const startDraggingSpotIcon = (spot: Spot, ev: events.Event) => {
   selectedInfo.value.listInfo = {
-    uid:++currentUid.value,
+    uid: ++currentUid.value,
     name: spot.name,
     type: 'spot',
     id: spot.id,
     location: spot.location,
+    position: spot.position,
     imgUrl: spot.imageUrl,
   }
-  drag(ev,selectedInfo.value.listInfo)
+  drag(ev, selectedInfo.value.listInfo)
   //console.log('startDragging')
 }
-
-const startDraggingHotelIcon = (hotel:Hotel,ev:events.Event) => {
+//拖拽酒店图标时触发
+const startDraggingHotelIcon = (hotel: Hotel, ev: events.Event) => {
   selectedInfo.value.listInfo = {
-    uid:++currentUid.value,
+    uid: ++currentUid.value,
     name: hotel.name,
     type: 'hotel',
     id: hotel.id,
     location: hotel.location,
+    position: hotel.position,
     imgUrl: hotel.imageUrl,
   }
-  drag(ev,selectedInfo.value.listInfo)
+  drag(ev, selectedInfo.value.listInfo)
   //console.log('startDragging')
 }
-
-const startDraggingTransportationIcon = (transportation:Transportation,ev:events.Event) => {
+//拖拽交通图标时触发
+const startDraggingTransportationIcon = (transportation: Transportation, ev: events.Event) => {
   selectedInfo.value.listInfo = {
-    uid:++currentUid.value,
+    uid: ++currentUid.value,
     name: transportation.type,
     type: 'transportation',
     id: transportation.id,
     location: transportation.route,
+    position: transportation.position,
     imgUrl: transportation.imageUrl,
   }
-  drag(ev,selectedInfo.value.listInfo)
+  drag(ev, selectedInfo.value.listInfo)
   //console.log('startDragging')
 }
-const drag=(ev:events.Event,selectedInfo:listInfo)=> {
+const drag = (ev: events.Event, selectedInfo: listInfo) => {
   //console.log('dragging:'+selectedInfo.name+' '+selectedInfo.type+' '+selectedInfo.id+' '+selectedInfo.location);
 }
-const startDraggingListInfo= (item:listInfo,ev:events.Event) => {
+//拖拽清单的单个项目时触发
+const startDraggingListInfo = (item: listInfo, ev: events.Event) => {
   selectedInfo.value.listInfo = {
-    uid:item.uid,
+    uid: item.uid,
     name: item.name,
     type: item.type,
     id: item.id,
     location: item.location,
+    position: item.position,
     imgUrl: item.imgUrl,
   }
   //travelInfoList.value.splice(travelInfoList.value.indexOf(item), 1)
-  let i=-1;
-  travelInfoList.value.forEach((item => {
-    if(item.uid === selectedInfo.value.listInfo.uid) {
-      i=travelInfoList.value.indexOf(item)
+  let i = -1
+  travelInfoList.value.forEach((item) => {
+    if (item.uid === selectedInfo.value.listInfo.uid) {
+      i = travelInfoList.value.indexOf(item)
     }
-  }))
-  console.log(selectedInfo.value.listInfo);
-  if(i > -1) {
+  })
+  console.log(selectedInfo.value.listInfo)
+  if (i > -1) {
     travelInfoList.value.splice(i, 1)
   }
-  console.log('startDragging:sort='+i)
+  onTravelInfoListUpdate()
 }
 
 const clearInfo = () => {
   selectedInfo.value.listInfo = {
-    uid:0,
-    name:'',
+    uid: 0,
+    name: '',
     type: '',
     id: 0,
     location: '',
+    position: { x: 0, y: 0 },
     imgUrl: '',
   }
 }
-function onDrop(ev:events.Event ) {
-  ev.preventDefault();
-  var data=selectedInfo.value.listInfo;
-  console.log(data);
-  travelInfoList.value.push(data);
+//拖拽至清单的区域时触发
+function onDrop(ev: events.Event) {
+  ev.preventDefault()
+  ev.stopPropagation()
+  var data = selectedInfo.value.listInfo
+  console.log(data)
+  travelInfoList.value.push(data)
   /*travelInfoList.value.forEach((item => {
     console.log('item:', item);
   }))*/
   selectedInfo.value.listInfo = {
-    uid:0,
-    name:'',
+    uid: 0,
+    name: '',
     type: '',
     id: 0,
     location: '',
+    position: { x: 0, y: 0 },
     imgUrl: '',
   }
+  onTravelInfoListUpdate()
   //ev.target.appendChild(document.getElementById(data));
 }
-const onListDrop=(item:listInfo,ev:events.Event) => {
-  ev.preventDefault();
-  ev.stopPropagation();
+//拖拽至清单的单个项目时触发
+const onListDrop = (item: listInfo, ev: events.Event) => {
+  ev.preventDefault()
+  ev.stopPropagation()
   //console.log('onListDrop');
-  let index=travelInfoList.value.indexOf(item)
-  travelInfoList.value.splice(index, 0, selectedInfo.value.listInfo);
-
+  let index = travelInfoList.value.indexOf(item)
+  travelInfoList.value.splice(index, 0, selectedInfo.value.listInfo)
+  onTravelInfoListUpdate()
   //console.log('onListDrop');
 }
-function allowDrop(ev:events.Event)
-{
-  ev.preventDefault();
+function allowDrop(ev: events.Event) {
+  ev.preventDefault()
 }
 
+//画线
+// 引用 canvas 元素
+const routeCanvas = ref<HTMLCanvasElement | null>(null)
+
+const onTravelInfoListUpdate = () => {
+  drawRoute()
+}
+
+// 绘制路线的函数
+const drawRoute = () => {
+  if (!routeCanvas.value) return
+
+  const canvas = routeCanvas.value
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    console.error('Canvas context not found')
+    return
+  }
+  // 清空画布
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // 设置画布尺寸
+  canvas.width = canvas.offsetWidth
+  canvas.height = canvas.offsetHeight
+
+  // 如果有多个点，开始绘制路径
+  if (travelInfoList.value.length > 1) {
+    ctx.beginPath()
+    ctx.lineWidth = 2
+    ctx.strokeStyle = '#4caf50'
+
+    travelInfoList.value.forEach((item, index) => {
+      // 将百分比坐标转换为像素坐标
+      const x = (item.position.x / 100) * canvas.width
+      const y = (item.position.y / 100) * canvas.height
+
+      if (index === 0) {
+        ctx.moveTo(x, y) // 移动到起点
+      } else {
+        ctx.lineTo(x, y) // 连接到下一个点
+      }
+    })
+
+    ctx.stroke() // 绘制路径
+  }
+}
+
+// 在组件挂载时初始化画布
+onMounted(() => {
+  nextTick(() => {
+    drawRoute()
+  })
+})
 </script>
 
 <template>
-  <div class="home" style="touch-action: none;">
+
+  <div class="home" style="touch-action: none">
     <!-- 左栏：地图上显示景点、酒店和交通 -->
     <div class="left-panel">
+      <div class="route-container">
+        <canvas ref="routeCanvas" class="route-canvas"></canvas>
+      </div>
       <!-- 左上角的折叠按钮控件 -->
       <div class="control-panel">
         <FoldingButton @filter-change="handleFilterChange" />
@@ -402,13 +667,14 @@ function allowDrop(ev:events.Event)
           :class="{ 'marker-selected': isItemSelected('hotel', hotel.id) }"
           @click.stop="toggleSelectItem('hotel', hotel, $event)"
           draggable="true"
-          @dragstart ="startDraggingHotelIcon(hotel,$event)"
+          @dragstart="startDraggingHotelIcon(hotel, $event)"
         >
           <div class="marker-icon hotel-icon">
             <IconHotel />
           </div>
           <div class="marker-tooltip" :class="{ 'tooltip-left': hotel.position.x > 70 }">
-            <img :src="hotel.imageUrl" alt="酒店图片" class="tooltip-image" /> <!-- 添加图片展示 -->
+            <img :src="hotel.imageUrl" alt="酒店图片" class="tooltip-image" />
+            <!-- 添加图片展示 -->
             <h3>{{ hotel.name }}</h3>
             <p>位置: {{ hotel.location }}</p>
             <p>价格: {{ hotel.price }}</p>
@@ -425,16 +691,17 @@ function allowDrop(ev:events.Event)
           :class="{ 'marker-selected': isItemSelected('spot', spot.id) }"
           draggable="true"
           @click.stop="toggleSelectItem('spot', spot, $event)"
-          @dragstart ="startDraggingSpotIcon(spot,$event)"
+          @dragstart="startDraggingSpotIcon(spot, $event)"
         >
           <div class="marker-icon spot-icon">
-            <IconSpot/>
+            <IconSpot />
           </div>
           <div
             class="marker-tooltip"
             :class="{ 'tooltip-left': spot.position.x > 70, 'tooltip-top': spot.position.y > 70 }"
           >
-            <img :src="spot.imageUrl" alt="景点图片" class="tooltip-image" /> <!-- 添加图片展示 -->
+            <img :src="spot.imageUrl" alt="景点图片" class="tooltip-image" />
+            <!-- 添加图片展示 -->
             <h3>{{ spot.name }}</h3>
             <p>位置: {{ spot.location }}</p>
             <p>评分: {{ spot.rating }}/5</p>
@@ -451,9 +718,8 @@ function allowDrop(ev:events.Event)
           :class="{ 'marker-selected': isItemSelected('transportation', transport.id) }"
           @click.stop="toggleSelectItem('transportation', transport, $event)"
           draggable="true"
-          @dragstart ="startDraggingTransportationIcon(transport,$event)"
+          @dragstart="startDraggingTransportationIcon(transport, $event)"
         >
-
           <div class="marker-icon transportation-icon">
             <IconTransportation />
           </div>
@@ -464,12 +730,14 @@ function allowDrop(ev:events.Event)
               'tooltip-top': transport.position.y > 70,
             }"
           >
-            <img :src="transport.imageUrl" alt="交通图片" class="tooltip-image" /> <!-- 添加图片展示 -->
+            <img :src="transport.imageUrl" alt="交通图片" class="tooltip-image" />
+            <!-- 添加图片展示 -->
             <h3>{{ transport.type }} - {{ transport.route }}</h3>
             <p>频率: {{ transport.frequency }}</p>
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- 右栏：旅游规划清单（暂时不实现具体功能） -->
@@ -480,19 +748,27 @@ function allowDrop(ev:events.Event)
       <TransitionGroup class="plan-content" name="list">
         <li v-for="item in travelInfoList" class="item" :key="item.uid">
           <TravelList
-            :name="item.name" :type="item.type" :location="item.location" :id="item.id" :image-url="item.imgUrl"
+            :name="item.name"
+            :type="item.type"
+            :location="item.location"
+            :id="item.id"
+            :image-url="item.imgUrl"
             draggable="true"
             @dragstart="startDraggingListInfo(item, $event)"
-            @drop="onListDrop(item,$event)"
+            @drop="onListDrop(item, $event)"
           />
         </li>
       </TransitionGroup>
     </div>
+
   </div>
+
+
 </template>
 
 <style scoped>
 .home {
+  position: absolute;
   width: 100%;
   height: 100vh;
   display: flex;
@@ -649,8 +925,6 @@ function allowDrop(ev:events.Event)
   color: #555;
 }
 
-
-
 /* 适配不同屏幕尺寸 */
 @media (max-width: 768px) {
   .home {
@@ -739,7 +1013,7 @@ function allowDrop(ev:events.Event)
 }
 
 /*列表效果*/
-.item{
+.item {
   list-style: none;
 }
 
@@ -759,5 +1033,18 @@ function allowDrop(ev:events.Event)
   以便能够正确地计算移动的动画。 */
 .list-leave-active {
   position: absolute;
+}
+
+/*显示路径*/
+.route-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.route-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 </style>
