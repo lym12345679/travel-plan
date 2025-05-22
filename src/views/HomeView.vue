@@ -320,8 +320,18 @@ const startDraggingListInfo= (item:listInfo,ev:events.Event) => {
     location: item.location,
     imgUrl: item.imgUrl,
   }
-  drag(ev,selectedInfo.value.listInfo)
-  //console.log('startDragging')
+  //travelInfoList.value.splice(travelInfoList.value.indexOf(item), 1)
+  let i=-1;
+  travelInfoList.value.forEach((item => {
+    if(item.uid === selectedInfo.value.listInfo.uid) {
+      i=travelInfoList.value.indexOf(item)
+    }
+  }))
+  console.log(selectedInfo.value.listInfo);
+  if(i > -1) {
+    travelInfoList.value.splice(i, 1)
+  }
+  console.log('startDragging:sort='+i)
 }
 
 const clearInfo = () => {
@@ -360,12 +370,6 @@ const onListDrop=(item:listInfo,ev:events.Event) => {
   travelInfoList.value.splice(index, 0, selectedInfo.value.listInfo);
 
   //console.log('onListDrop');
-}
-function onDragLeave(ev:events.Event) {
-  ev.preventDefault();
-  //console.log(selectedInfo.value.listInfo);
-  travelInfoList.value = travelInfoList.value.filter(x => x.uid !== selectedInfo.value.listInfo.uid);
-  //console.log('onDragLeave');
 }
 function allowDrop(ev:events.Event)
 {
@@ -469,20 +473,20 @@ function allowDrop(ev:events.Event)
     </div>
 
     <!-- 右栏：旅游规划清单（暂时不实现具体功能） -->
-    <div class="right-panel" @drop="onDrop" @dragover="allowDrop" @dragleave="onDragLeave">
+    <div class="right-panel" @drop="onDrop" @dragover="allowDrop">
       <div class="plan-header">
         <h2>旅游清单</h2>
       </div>
-      <div class="plan-content" >
-        <div v-for="item in travelInfoList">
+      <TransitionGroup class="plan-content" name="list">
+        <li v-for="item in travelInfoList" class="item" :key="item.uid">
           <TravelList
             :name="item.name" :type="item.type" :location="item.location" :id="item.id" :image-url="item.imgUrl"
             draggable="true"
             @dragstart="startDraggingListInfo(item, $event)"
             @drop="onListDrop(item,$event)"
           />
-        </div>
-      </div>
+        </li>
+      </TransitionGroup>
     </div>
   </div>
 </template>
@@ -734,4 +738,26 @@ function allowDrop(ev:events.Event)
   margin-bottom: 8px;
 }
 
+/*列表效果*/
+.item{
+  list-style: none;
+}
+
+.list-move, /* 对移动中的元素应用的过渡 */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* 确保将离开的元素从布局流中删除
+  以便能够正确地计算移动的动画。 */
+.list-leave-active {
+  position: absolute;
+}
 </style>

@@ -16,40 +16,94 @@ const props = defineProps({
 
 <template>
   <div class="info-box" :data-i-id="props.id">
-    <span v-if="props.type === 'hotel'" class="icon">
-      <IconHotel />
-    </span>
-    <span v-else-if="props.type === 'spot'" class="icon">
-      <IconSpot />
-    </span>
-    <span v-else-if="props.type === 'transportation'" class="icon">
-      <IconTransportation />
-    </span>
-    <img v-if="props.imageUrl" :src="props.imageUrl" alt="图片" class="info-image" /> <!-- 添加图片展示 -->
-    <img v-else src="../assets/nopicture.jpg" alt="Placeholder" class="info-image" /> <!-- 默认图片 -->
-    <p>Name: {{ props.name }}</p>
-    <p>Type: {{ props.type }}</p>
-    <p>Location: {{ props.location }}</p>
-    <div style="height: 10px;"></div> <!-- Small empty space -->
+    <div class="info-content">
+    <div class="info-header">
+      <span v-if="props.type === 'hotel'" class="icon">
+        <IconHotel />
+      </span>
+      <span v-else-if="props.type === 'spot'" class="icon">
+        <IconSpot />
+      </span>
+      <span v-else-if="props.type === 'transportation'" class="icon">
+        <IconTransportation />
+      </span>
+      <p class="info-name">{{ props.name }}</p>
+    </div>
+      <img
+        v-if="props.imageUrl"
+        :src="props.imageUrl"
+        alt="Image"
+        class="info-image"
+      />
+      <img
+        v-else
+        src="../assets/nopicture.jpg"
+        alt="Placeholder"
+        class="info-image"
+      />
+    </div>
+    <div class="info-details">
+
+      <p class="info-location">{{ props.location }}</p>
+    </div>
   </div>
+
 </template>
 
 <style scoped>
 .info-box {
-  border: 1px solid #ccc; /* Adds a light gray border */
-  padding: 5px; /* Adds some padding inside the box */
-  border-radius: 5px; /* Optional: Rounds the corners */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.info-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.info-box:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.icon{
+.info-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.icon {
   width: 50px;
   height: 50px;
+  margin-bottom: 10px;
 }
 
 .info-image {
   width: 100px;
   height: 100px;
   object-fit: cover;
-  margin: 10px 0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  margin-left: 8px;
+}
+
+.info-details {
+  text-align: center;
+}
+
+.info-name,
+.info-type,
+.info-location {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #333;
 }
 </style>
