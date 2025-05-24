@@ -6,6 +6,7 @@ import IconSpot from '@/components/icons/IconSpot.vue'
 import IconTransportation from '@/components/icons/IconTransportation.vue'
 import TravelList from '@/components/TravelList.vue'
 import * as events from 'node:events'
+import GeneralButton from '@/components/generalButton.vue'
 
 // 控制内容的显示状态
 const showHotels = ref(true)
@@ -585,6 +586,22 @@ function allowDrop(ev: events.Event) {
 }
 
 //画线
+//显示路线
+const showRoute=ref(true)
+const onRouteButtonClicked = () => {
+  showRoute.value = !showRoute.value
+  if (showRoute.value) {
+    drawRoute()
+  } else {
+    const canvas = routeCanvas.value
+    if (canvas) {
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+    }
+  }
+}
 // 引用 canvas 元素
 const routeCanvas = ref<HTMLCanvasElement | null>(null)
 
@@ -651,7 +668,10 @@ onMounted(() => {
       <div class="control-panel">
         <FoldingButton @filter-change="handleFilterChange" />
       </div>
-
+      <div class="control-panel-2">
+      <!--右下角开关按钮-->
+      <general-button title="路线" @click="onRouteButtonClicked"></general-button>
+      </div>
       <!-- 地图容器 -->
       <div class="map-container" @click="clearSelection">
         <!-- 地图背景 -->
@@ -790,7 +810,12 @@ onMounted(() => {
   left: 16px;
   z-index: 100;
 }
-
+.control-panel-2{
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100;
+}
 .map-container {
   position: relative;
   width: 100%;
